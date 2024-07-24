@@ -1,0 +1,44 @@
+---
+- hosts: db
+  become: yes
+  tasks:
+    - name: 'Atualizar o repositorio de pacotes'
+      ansible.builtin.apt:
+        update-cache: yes
+    - name: 'Instalacao de pacotes'
+      ansible.builtin.apt:
+        pkg:
+          - mariadb-server
+          - wget
+          - zip
+          - unzip
+          - curl
+          - vim
+          - python3-mysqldb
+        state: present
+    - name: 'Baixar e descompactar arquivo ZIP'
+      ansible.builtin.unarchive:
+        src: https://github.com/rogerramossilva/devops/raw/master/db.zip
+        dest: /tmp
+        remote_src: yes
+    - name: 'Criacao do banco de dados'
+      community.mysql.mysql_db:
+        name: backup
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+    - name: 'Importacao Base de Dados'
+      mysql_db:
+        login_user: root
+        login_password: ""
+        state: import
+        name: backup
+        target: /tmp/backup.sql
+    - name: 'Criacao de conta de Usuario'
+      mysql_user:
+        host: '%'
+        login_unix_socket: /run/mysqld/mysqld.sock
+        name: express
+        password: 'AllSafe0!'
+        priv: 'backup.*:ALL'
+        state: present
+        column_case_sensitive: false
