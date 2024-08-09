@@ -1,0 +1,25 @@
+# QUAL IMAGEM SERA USADA COMO BASE PARA A CRIACAO DA IMAGEM
+FROM debian:11-slim
+
+# INFORMACAO DO MANTENEDOR DA IMAGEM
+LABEL maintainer="Vinicius Puca Ribeiro viniciuspuca@gmail.com"
+ENV PORT=80
+
+# ATUALIZAR REPOSITORIOS E INSTALAR PACOTES NECESSARIOS
+RUN apt update && apt install apache2 php php7.4-mysql -y \
+&& a2enmod php7.4 # ou a versão do PHP desejada
+
+# REMOVER O ARQUIVO 'INDEX.HTML' PADRAO
+RUN rm -f /var/www/html/index.html
+
+# COPIAR O CONTEUDO DA PASTA 'WEB' PARA O DIRETORIO VIRTUAL DO APACHE
+COPY ./web/ /var/www/html
+
+# EXPOR A PORTA 80 DO SERVIDOR WEB
+EXPOSE $PORT
+
+# MUDAR PARA O DIRETORIO DO APACHE2
+WORKDIR /etc/apache2
+
+# INICIAR O SERVICO DO APACHE2
+CMD ["apachectl", "-D", "FOREGROUND"]
